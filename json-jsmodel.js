@@ -8,25 +8,30 @@ const rl = readline.createInterface({
 });
 
 let filePath = "";
-
-rl.question('Please give json file path \n', (answer) => {
-    // TODO: Log the answer in a database
-    filePath = answer;
-    rl.question('Your base function name \n', (answer) => {
+ReadInputs();
+function ReadInputs() {
+    rl.question('Please give json file path \n', (answer) => {
         // TODO: Log the answer in a database
-        let rawdata = fs.readFileSync(filePath);
-        var res = createJSModels(JSON.parse(rawdata), answer);
-        WriteResultToFile(res);    
+        filePath = answer;
+        rl.question('Your base function name \n', (answer) => {
+            // TODO: Log the answer in a database
+            let rawdata = fs.readFileSync(filePath);
+            var res = createJSModels(JSON.parse(rawdata), answer);
+            WriteResultToFile(res);
+        });
     });
-});
+}
 
-function WriteResultToFile(content){
-    fs.writeFile('JSFunctions.js',content,function(err){
-        if(err){
+
+function WriteResultToFile(content) {
+    fs.writeFile('JSFunctions.js', content, function (err) {
+        if (err) {
             console.log(`error occurred while writing file ${err}`);
+            ReadInputs();
         }
-        else{
+        else {
             console.log(`File is created.`);
+            process.exit();
         }
     })
 }
@@ -37,7 +42,7 @@ function createJSModels(parsedJson, name) {
     if (Array.isArray(parsedJson)) {
         parsedJson = parsedJson[0];
     }
-    var result = `function ${toPasacalCase(name)} (args){ \n args=args||{};`;    
+    var result = `function ${toPasacalCase(name)} (args){ \n args=args||{};`;
     for (var element in parsedJson) {
         var val = parsedJson[element];
         var propName = toPasacalCase(element);
@@ -52,9 +57,8 @@ function createJSModels(parsedJson, name) {
         else {
             prop = `this.${element} =${getDefaultValue(val, propName)}`
         }
-        result = `${result} \n ${prop};`;                
+        result = `${result} \n ${prop};`;
     };
-
     result = result + "\n }"
     return result;
 }
