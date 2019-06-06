@@ -15,7 +15,7 @@ rl.question('Please give json file path \n', (answer) => {
     rl.question('Your base function name \n', (answer) => {
         // TODO: Log the answer in a database
         let rawdata = fs.readFileSync(filePath);
-        var res = createFunctions(JSON.parse(rawdata), answer);
+        var res = createJSModels(JSON.parse(rawdata), answer);
         WriteResultToFile(res);    
     });
 });
@@ -29,12 +29,11 @@ function WriteResultToFile(content){
             console.log(`File is created.`);
         }
     })
-
 }
 
 
 
-function createFunctions(parsedJson, name) {
+function createJSModels(parsedJson, name) {
     if (Array.isArray(parsedJson)) {
         parsedJson = parsedJson[0];
     }
@@ -43,7 +42,7 @@ function createFunctions(parsedJson, name) {
         var val = parsedJson[element];
         var propName = toPasacalCase(element);
         if (Array.isArray(val) || typeof val === "object") {
-            var func = createFunctions(val, propName);
+            var func = createJSModels(val, propName);
             result = func + "\n" + result;
         }
         var prop = "";
