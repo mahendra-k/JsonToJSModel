@@ -1,4 +1,3 @@
-
 const readline = require('readline');
 const fs = require('fs');
 
@@ -11,26 +10,34 @@ let filePath = "";
 ReadInputs();
 function ReadInputs() {
     rl.question('Please give json file path \n', (answer) => {
-        // TODO: Log the answer in a database
         filePath = answer;
         rl.question('Your base function name \n', (answer) => {
-            // TODO: Log the answer in a database
             let rawdata = fs.readFileSync(filePath);
-            var res = createJSModels(JSON.parse(rawdata), answer);
-            WriteResultToFile(res);
+            try {
+                var baseName = answer || "Base";
+                var parsedJson = JSON.parse(rawdata);
+                var res = createJSModels(parsedJson, baseName);
+                WriteResultToFile(res);
+            }
+            catch (e) {
+                console.log("Unable to parse Json.");
+                console.log("=================================");
+                ReadInputs();
+            }
         });
     });
 }
 
 
 function WriteResultToFile(content) {
-    fs.writeFile('JSFunctions.js', content, function (err) {
+    var fileName = 'JSFunctions.js';
+    fs.writeFile(fileName, content, function (err) {
         if (err) {
             console.log(`error occurred while writing file ${err}`);
             ReadInputs();
         }
         else {
-            console.log(`File is created.`);
+            console.log(`${fileName} File is created.`);
             process.exit();
         }
     })
@@ -48,14 +55,14 @@ function createJSModels(parsedJson, name) {
         var propName = toPasacalCase(element);
         if (Array.isArray(val) || typeof val === "object") {
             var func = createJSModels(val, propName);
-            result = func + "\n" + result;
+            result = func + "\n\n" + result;
         }
         var prop = "";
         if (typeof val != "object" || Array.isArray(val)) {
             prop = `this.${element} =args.${element} ||  ${getDefaultValue(val)}`
         }
         else {
-            prop = `this.${element} =${getDefaultValue(val, propName)}`
+            prop = `this.${element} =${getDefaultValue(val, element)}`
         }
         result = `${result} \n ${prop};`;
     };
@@ -83,7 +90,7 @@ function getDefaultValue(value, name) {
                 result = "[]";
                 break;
             }
-            result = `new ${name}(args)`;
+            result = `new ${toPasacalCase(name)}(args.${name})`;
             break;
         };
 
